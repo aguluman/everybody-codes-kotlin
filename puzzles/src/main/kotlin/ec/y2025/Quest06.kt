@@ -7,7 +7,8 @@ import ec.trimmedLines
 class Quest06 : Quest {
 
     /** Novice-mentor pairs in sword fighting: each novice pairs with every swordsman listed before them. */
-    override fun part1(input: String): Answer = Answer(Notes.parse(input).pairs(Profession.Sword))
+    override fun part1(input: String): Answer =
+        Answer(Notes.parse(input).pairs(Profession.Sword))
 
     /** Novice-mentor pairs in every profession: part 1's count, once per profession, added up. */
     override fun part2(input: String): Answer {
@@ -16,7 +17,8 @@ class Quest06 : Quest {
     }
 
     /** Pairs by tent distance: the notes repeat 1000 times, and a mentor is at most 1000 tents away. */
-    override fun part3(input: String): Answer = Answer(pairsNearby(input, distance = 1000, repeats = 1000))
+    override fun part3(input: String): Answer =
+        Answer(pairsNearby(input, distance = 1000, repeats = 1000))
 
     /** Part 3 with its two numbers as parameters, so the samples with smaller ones can be tested. */
     internal fun pairsNearby(input: String, distance: Int, repeats: Int): Long =
