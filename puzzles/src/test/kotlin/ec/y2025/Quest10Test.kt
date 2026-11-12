@@ -64,13 +64,36 @@ class Quest10Test {
         assertFailsWith<IllegalArgumentException> { quest.sheepInReach("D..", moves = -1) }
     }
 
-    @Ignore("unlocks after part 1: paste its sample, then delete this line")
     @Test
     fun `part 2 sample`() {
         val sample = """
-            REPLACE ME
+            ...SSS##.....
+            .S#.##..S#SS.
+            ..S.##.S#..S.
+            .#..#S##..SS.
+            ..SSSS.#.S.#.
+            .##..SS.#S.#S
+            SS##.#D.S.#..
+            S.S..S..S###.
+            .##.S#.#....S
+            .SSS.#SS..##.
+            ..#.##...S##.
+            .#...#.S#...S
+            SS...#.S.#S..
         """.trimIndent()
-        assertEquals(Answer("REPLACE ME"), quest.part2(sample))
+        // 5 + 7 + 15 over the sample's 3 rounds; the puzzle itself asks for 20.
+        assertEquals(5, quest.sheepEaten(sample, rounds = 1))
+        assertEquals(12, quest.sheepEaten(sample, rounds = 2))
+        assertEquals(27, quest.sheepEaten(sample, rounds = 3))
+    }
+
+    @Test
+    fun `a sheep is eaten after either half of a round, but never in a hideout`() {
+        // The dragon's one move lands on row 2, column 1 or 3.
+        assertEquals(1, quest.sheepEaten("D...\n....\n.S..", rounds = 1))   // the dragon lands on it
+        assertEquals(1, quest.sheepEaten("D...\n.S..\n....\n....", rounds = 1)) // it steps under the dragon
+        assertEquals(0, quest.sheepEaten("D...\n.S..\n.#..\n....", rounds = 1)) // it steps into a hideout
+        assertEquals(0, quest.sheepEaten("D...\n....\n.S..", rounds = 0))
     }
 
     @Ignore("unlocks after part 2: paste its sample, then delete this line")
