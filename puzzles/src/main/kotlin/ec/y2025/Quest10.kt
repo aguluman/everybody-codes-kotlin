@@ -12,7 +12,8 @@ class Quest10 : Quest {
     /** Sheep the dragon can eat over 20 rounds, counting every way its moves could go. */
     override fun part2(input: String): Answer = Answer(sheepEaten(input, rounds = 20))
 
-    override fun part3(input: String): Answer = TODO("quest 10 part 3")
+    /** Every distinct sequence of moves, sheep first, in which the dragon eats all the sheep. */
+    override fun part3(input: String): Answer = Answer(Tournament(Board.parse(input)).winningGames())
 
     /** Part 1 with the number of moves as a parameter, so the 3-move sample can be tested. */
     internal fun sheepInReach(input: String, moves: Int): Int {
@@ -64,6 +65,13 @@ class Quest10 : Quest {
     private companion object {
         /** Two squares one way, then one square perpendicular: the knight's move, in every direction. */
         val JUMPS = listOf(-2 to -1, -2 to 1, -1 to -2, -1 to 2, 1 to -2, 1 to 2, 2 to -1, 2 to 1)
+
+        /**
+         * Counts reach billions on small boards and grow fast with size. A plain `sumOf` would wrap
+         * past [Long.MAX_VALUE] into a wrong answer without a word; this throws instead.
+         */
+        inline fun <T> List<T>.sumOfExact(count: (T) -> Long): Long =
+            fold(0L) { total, item -> Math.addExact(total, count(item)) }
     }
 
     /**
@@ -72,8 +80,8 @@ class Quest10 : Quest {
      * cannot exist. Every square holds one thing, so no piece starts on a hideout.
      */
     private class Board private constructor(
-        private val rows: Int,
-        private val columns: Int,
+        val rows: Int,
+        val columns: Int,
         val dragon: Square,
         val sheep: Set<Square>,
         val hideouts: Set<Square>,
@@ -106,6 +114,94 @@ class Quest10 : Quest {
                 val dragons = all('D')
                 require(dragons.size == 1) { "a board has exactly one dragon, got ${dragons.size}" }
                 return Board(lines.size, columns, dragons.single(), all('S').toSet(), all('#').toSet())
+            }
+        }
+    }
+
+    /**
+     * Part 3's game. The sheep move first, one sheep per turn, one square down, and never onto the
+     * dragon unless that square is a hideout. If no sheep can move, their turn is skipped. The
+     * dragon must always move, and eats a sheep it lands on outside a hideout. A sheep stepping
+     * off the bottom escapes, so no game through that move can end with every sheep eaten.
+     *
+     * The same position is reached by many different games, so each position's count of winning
+     * continuations is worked out once and remembered.
+     */
+    private class Tournament(private val board: Board) {
+        private val known = HashMap<Position, Long>()
+
+        fun winningGames(): Long = games(Position(board.dragon, Flock.of(board), Turn.Sheep))
+
+        private fun games(position: Position): Long = known.getOrPut(position) {
+            when (position.turn) {
+                Turn.Sheep -> sheepTurn(position)
+                Turn.Dragon -> dragonTurn(position)
+            }
+        }
+
+        private fun sheepTurn(position: Position): Long {
+            val (dragon, flock) = position
+            // A sheep may step anywhere below it except onto the dragon outside a hideout.
+            val steps = flock.sheep().filter { sheep ->
+                val to = sheep.down()
+                to != dragon || to in board.hideouts
+            }
+            if (steps.isEmpty()) return games(position.copy(turn = Turn.Dragon))
+            return steps.sumOfExact { sheep ->
+                if (sheep.down() !in board) 0L // escaped: this game can no longer end with every sheep eaten
+                else games(Position(dragon, flock.stepped(sheep), Turn.Dragon))
+            }
+        }
+
+        private fun dragonTurn(position: Position): Long =
+            position.dragon.jumps().filter { it in board }.sumOfExact { to ->
+                val eats = to in position.flock && to !in board.hideouts
+                val flock = if (eats) position.flock.without(to) else position.flock
+                // Eating the last sheep ends the game: that is one complete winning sequence.
+                if (flock.isEmpty) 1L else games(Position(to, flock, Turn.Sheep))
+            }
+    }
+
+    private enum class Turn { Sheep, Dragon }
+
+    /** Everything that decides how a game can go on from here; the moves that led here do not. */
+    private data class Position(val dragon: Square, val flock: Flock, val turn: Turn)
+
+    /**
+     * The sheep still on the board, at most one per column: a column's sheep is just its row, or
+     * null once that sheep is gone. Two sheep in one column cannot be written down. Built only by
+     * [of]; its copy is as private as its constructor.
+     */
+    @ConsistentCopyVisibility
+    private data class Flock private constructor(private val rows: List<Int?>) {
+
+        val isEmpty: Boolean get() = rows.all { it == null }
+
+        /** The square of every sheep still on the board. */
+        fun sheep(): List<Square> = rows.mapIndexedNotNull { column, row -> row?.let { Square(it, column) } }
+
+        /** `square in flock`: is a sheep standing on [square]? */
+        operator fun contains(square: Square): Boolean = rows.getOrNull(square.column) == square.row
+
+        /** The flock after [sheep] steps one square down. */
+        fun stepped(sheep: Square): Flock = changed(sheep) { it + 1 }
+
+        /** The flock after [sheep] is eaten. */
+        fun without(sheep: Square): Flock = changed(sheep) { null }
+
+        private fun changed(sheep: Square, row: (Int) -> Int?): Flock {
+            require(sheep in this) { "no sheep stands on $sheep" }
+            return Flock(rows.toMutableList().also { it[sheep.column] = row(sheep.row) })
+        }
+
+        companion object {
+            fun of(board: Board): Flock {
+                require(board.sheep.isNotEmpty()) { "a game with no sheep has nothing to eat" }
+                val byColumn = board.sheep.groupBy { it.column }
+                byColumn.values.firstOrNull { it.size > 1 }?.let {
+                    throw IllegalArgumentException("column ${it.first().column} has ${it.size} sheep; it can hold one")
+                }
+                return Flock(List(board.columns) { column -> byColumn[column]?.single()?.row })
             }
         }
     }

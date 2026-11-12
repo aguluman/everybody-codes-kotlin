@@ -1,7 +1,6 @@
 package ec.y2025
 
 import ec.Answer
-import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -96,12 +95,18 @@ class Quest10Test {
         assertEquals(0, quest.sheepEaten("D...\n....\n.S..", rounds = 0))
     }
 
-    @Ignore("unlocks after part 2: paste its sample, then delete this line")
     @Test
-    fun `part 3 sample`() {
-        val sample = """
-            REPLACE ME
-        """.trimIndent()
-        assertEquals(Answer("REPLACE ME"), quest.part3(sample))
+    fun `part 3 samples`() {
+        assertEquals(Answer(15), quest.part3("SSS\n..#\n#.#\n#D."))
+        // The sheep's turn is skipped in some of these: the dragon moves twice in a row.
+        assertEquals(Answer(8), quest.part3("SSS\n..#\n..#\n.##\n.D#"))
+        assertEquals(Answer(44), quest.part3("..S..\n.....\n..#..\n.....\n..D.."))
+        assertEquals(Answer(4406), quest.part3(".SS.S\n#...#\n...#.\n##..#\n.####\n##D.#"))
+        assertEquals(Answer(13033988838), quest.part3("SSS.S\n.....\n#.#.#\n.#.#.\n#.D.#"))
+    }
+
+    @Test
+    fun `two sheep in one column are rejected, not played`() {
+        assertFailsWith<IllegalArgumentException> { quest.part3("S..\nS..\n.D.") }
     }
 }
