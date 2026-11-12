@@ -36,13 +36,23 @@ class Quest12Test {
         assertFailsWith<IllegalArgumentException> { quest.part1("1a\n23") }    // not a size
     }
 
-    @Ignore("unlocks after part 1: paste its sample, then delete this line")
     @Test
     fun `part 2 sample`() {
         val sample = """
-            REPLACE ME
+            9589233445
+            9679121695
+            8469121876
+            8352919876
+            7342914327
+            7234193437
+            6789193538
+            6781219648
+            5691219769
+            5443329859
         """.trimIndent()
-        assertEquals(Answer("REPLACE ME"), quest.part2(sample))
+        assertEquals(Answer(58), quest.part2(sample))
+        // One barrel is both corners: it still burns, and counts, once.
+        assertEquals(Answer(1), quest.part2("5"))
     }
 
     @Ignore("unlocks after part 2: paste its sample, then delete this line")

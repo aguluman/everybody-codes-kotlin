@@ -9,10 +9,18 @@ class Quest12 : Quest {
     /** Barrels destroyed by one fireball on the top-left barrel. */
     override fun part1(input: String): Answer {
         val clearing = Clearing.parse(input)
-        return Answer(clearing.burned(from = Barrel(row = 0, column = 0)).size)
+        return Answer(clearing.burned(from = setOf(clearing.topLeft)).size)
     }
 
-    override fun part2(input: String): Answer = TODO("quest 12 part 2")
+    /**
+     * Barrels destroyed by two fireballs at once, on opposite corners. The timing doesn't matter:
+     * a barrel catches from any burning neighbour at least its size, whenever that one caught.
+     */
+    override fun part2(input: String): Answer {
+        val clearing = Clearing.parse(input)
+        return Answer(clearing.burned(from = setOf(clearing.topLeft, clearing.bottomRight)).size)
+    }
+
     override fun part3(input: String): Answer = TODO("quest 12 part 3")
 
     /** One barrel's place in the grid: row 0 is the top line of the notes, column 0 its first character. */
@@ -34,15 +42,19 @@ class Quest12 : Quest {
 
         private fun size(barrel: Barrel): Char = sizes[barrel.row][barrel.column]
 
+        val topLeft: Barrel get() = Barrel(0, 0)
+        val bottomRight: Barrel get() = Barrel(sizes.lastIndex, sizes.first().lastIndex)
+
         /**
          * Every barrel the chain reaction from [from] destroys, [from] included. A burning barrel
          * ignites each neighbour of the same size or smaller. Each barrel burns once, so the
          * reaction visits each barrel at most once and always ends.
          */
-        fun burned(from: Barrel): Set<Barrel> {
-            require(from in this) { "$from is not in the clearing" }
-            val burned = mutableSetOf(from)
-            val burning = ArrayDeque(listOf(from))
+        fun burned(from: Set<Barrel>): Set<Barrel> {
+            require(from.isNotEmpty()) { "a chain reaction needs at least one fireball" }
+            from.firstOrNull { it !in this }?.let { throw IllegalArgumentException("$it is not in the clearing") }
+            val burned = from.toMutableSet()
+            val burning = ArrayDeque(from)
             while (burning.isNotEmpty()) {
                 val barrel = burning.removeFirst()
                 for (next in barrel.neighbours()) {
