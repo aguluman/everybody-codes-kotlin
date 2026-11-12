@@ -12,5 +12,6 @@ val quests: Map<Int, () -> Quest> = mapOf(
     6 to ::Quest06,
     7 to ::Quest07,
     8 to ::Quest08,
+    9 to ::Quest09,
     // make new: quests
 )
