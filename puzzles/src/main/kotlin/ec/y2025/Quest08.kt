@@ -57,7 +57,7 @@ class Quest08 : Quest {
          */
         infix fun crosses(other: Thread): Boolean =
             other.low != low && other.low != high && other.high != low && other.high != high &&
-                (other.low in low..high) != (other.high in low..high)
+                    (other.low in low..high) != (other.high in low..high)
 
         companion object {
             fun between(a: Int, b: Int): Thread {
