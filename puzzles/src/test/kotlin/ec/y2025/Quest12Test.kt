@@ -1,7 +1,6 @@
 package ec.y2025
 
 import ec.Answer
-import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -55,12 +54,28 @@ class Quest12Test {
         assertEquals(Answer(1), quest.part2("5"))
     }
 
-    @Ignore("unlocks after part 2: paste its sample, then delete this line")
     @Test
-    fun `part 3 sample`() {
-        val sample = """
-            REPLACE ME
+    fun `part 3 samples`() {
+        assertEquals(Answer(14), quest.part3("5411\n3362\n5235\n3112"))
+        val bigger = """
+            41951111131882511179
+            32112222211518122215
+            31223333322115122219
+            31234444432147511128
+            91223333322176121892
+            61112222211166431583
+            14661111166111111746
+            11111119142122222177
+            41222118881233333219
+            71222127839122222196
+            56111126279711111517
         """.trimIndent()
-        assertEquals(Answer("REPLACE ME"), quest.part3(sample))
+        assertEquals(Answer(136), quest.part3(bigger))
+    }
+
+    @Test
+    fun `a clearing that one fireball clears needs no more`() {
+        // The first strike burns everything; later rounds find nothing standing and add nothing.
+        assertEquals(Answer(4), quest.part3("99\n99"))
     }
 }
