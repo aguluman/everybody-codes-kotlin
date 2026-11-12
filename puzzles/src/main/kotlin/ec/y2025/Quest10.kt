@@ -37,9 +37,9 @@ class Quest10 : Quest {
 
         /** Removes and counts the sheep standing, unhidden, on a square the dragon could be on. */
         fun feast(dragon: Set<Square>) {
-            val caught = sheep.filter { it in dragon && it !in board.hideouts }
+            val (caught, safe) = sheep.partition { it in dragon && it !in board.hideouts }
             eaten += caught.size
-            sheep = sheep - caught.toSet()
+            sheep = safe.toSet()
         }
 
         // After move 0 is the starting square, which is not a round: rounds begin with move 1.
@@ -110,6 +110,7 @@ class Quest10 : Quest {
                         Square(row, column) to symbol
                     }
                 }
+
                 fun all(symbol: Char) = squares.filter { it.second == symbol }.map { it.first }
                 val dragons = all('D')
                 require(dragons.size == 1) { "a board has exactly one dragon, got ${dragons.size}" }
@@ -134,7 +135,7 @@ class Quest10 : Quest {
 
         private fun games(position: Position): Long = known.getOrPut(position) {
             when (position.turn) {
-                Turn.Sheep -> sheepTurn(position)
+                Turn.Sheep  -> sheepTurn(position)
                 Turn.Dragon -> dragonTurn(position)
             }
         }
@@ -142,10 +143,7 @@ class Quest10 : Quest {
         private fun sheepTurn(position: Position): Long {
             val (dragon, flock) = position
             // A sheep may step anywhere below it except onto the dragon outside a hideout.
-            val steps = flock.sheep().filter { sheep ->
-                val to = sheep.down()
-                to != dragon || to in board.hideouts
-            }
+            val steps = flock.sheep().filter { it.down() != dragon || it.down() in board.hideouts }
             if (steps.isEmpty()) return games(position.copy(turn = Turn.Dragon))
             return steps.sumOfExact { sheep ->
                 if (sheep.down() !in board) 0L // escaped: this game can no longer end with every sheep eaten
@@ -197,11 +195,10 @@ class Quest10 : Quest {
         companion object {
             fun of(board: Board): Flock {
                 require(board.sheep.isNotEmpty()) { "a game with no sheep has nothing to eat" }
-                val byColumn = board.sheep.groupBy { it.column }
-                byColumn.values.firstOrNull { it.size > 1 }?.let {
-                    throw IllegalArgumentException("column ${it.first().column} has ${it.size} sheep; it can hold one")
-                }
-                return Flock(List(board.columns) { column -> byColumn[column]?.single()?.row })
+                val rowByColumn = board.sheep.associate { it.column to it.row }
+                // `associate` keeps one sheep per column: fewer entries than sheep means a column had two.
+                require(rowByColumn.size == board.sheep.size) { "a column can hold only one sheep" }
+                return Flock(List(board.columns) { rowByColumn[it] })
             }
         }
     }
