@@ -52,7 +52,7 @@ class Quest11 : Quest {
     @ConsistentCopyVisibility
     private data class Flock private constructor(private val birds: List<Int>) {
 
-        /** Each column's ducks times its number, counting columns from 1. */
+        /** Each column's ducks times it's number, counting columns from 1. */
         val checksum: Long get() = birds.withIndex().sumOf { (column, count) -> (column + 1L) * count }
 
         /**
