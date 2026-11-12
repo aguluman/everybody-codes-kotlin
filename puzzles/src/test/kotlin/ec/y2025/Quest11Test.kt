@@ -1,7 +1,7 @@
 package ec.y2025
 
 import ec.Answer
-import kotlin.test.Ignore
+import kotlin.random.Random
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -17,6 +17,20 @@ class Quest11Test {
         4
         9
         6
+    """.trimIndent()
+
+    private val bigger = """
+        805
+        706
+        179
+        48
+        158
+        150
+        232
+        885
+        598
+        524
+        423
     """.trimIndent()
 
     @Test
@@ -36,24 +50,53 @@ class Quest11Test {
         assertFailsWith<IllegalArgumentException> { quest.checksumAfter("1\n2", rounds = 1) } // 3 ducks, 2 columns
         assertFailsWith<IllegalArgumentException> { quest.checksumAfter("4\n-2", rounds = 1) }
         assertFailsWith<IllegalArgumentException> { quest.checksumAfter("4\nfour", rounds = 1) }
+        assertFailsWith<IllegalArgumentException> { quest.checksumAfter("", rounds = 1) } // no columns at all
         assertFailsWith<IllegalArgumentException> { quest.checksumAfter(sample, rounds = -1) }
     }
 
-    @Ignore("unlocks after part 1: paste its sample, then delete this line")
     @Test
-    fun `part 2 sample`() {
-        val sample = """
-            REPLACE ME
-        """.trimIndent()
-        assertEquals(Answer("REPLACE ME"), quest.part2(sample))
+    fun `part 2 samples`() {
+        assertEquals(Answer(11L), quest.part2(sample))
+        assertEquals(Answer(1579L), quest.part2(bigger))
+        // Already balanced: no round is needed.
+        assertEquals(Answer(0L), quest.part2("5\n5\n5"))
     }
 
-    @Ignore("unlocks after part 2: paste its sample, then delete this line")
     @Test
     fun `part 3 sample`() {
-        val sample = """
-            REPLACE ME
+        // Part III has no example of its own. The manual's flock after round 6 is sorted, like
+        // Part III's notes, and its table shows it balanced 5 rounds later, at round 11.
+        val inFlight = """
+            3
+            4
+            4
+            4
+            7
+            8
         """.trimIndent()
-        assertEquals(Answer("REPLACE ME"), quest.part3(sample))
+        assertEquals(Answer(5L), quest.part3(inFlight))
+    }
+
+    @Test
+    fun `part 3 counts past Int without simulating`() {
+        // Sorted, so no first-phase rounds; 3 billion ducks short of the mean, so 3 billion rounds.
+        // Simulating them would take days; the closed form answers at once.
+        assertEquals(Answer(3_000_000_000L), quest.part3("0\n6000000000"))
+    }
+
+    @Test
+    fun `closed form agrees with simulation`() {
+        // The second phase's round count is an observed property, not a proven one: keep checking it.
+        assertEquals(quest.simulatedRounds(sample), quest.roundsToBalance(sample))
+        assertEquals(quest.simulatedRounds(bigger), quest.roundsToBalance(bigger))
+        val random = Random(11)
+        repeat(5_000) {
+            val columns = random.nextInt(1, 10)
+            val birds = MutableList(columns) { random.nextLong(0, 31) }
+            birds[birds.lastIndex] += Math.floorMod(-birds.sum(), columns.toLong())
+            if (random.nextBoolean()) birds.sort()
+            val input = birds.joinToString("\n")
+            assertEquals(quest.simulatedRounds(input), quest.roundsToBalance(input), input)
+        }
     }
 }
