@@ -1,7 +1,6 @@
 package ec.y2025
 
 import ec.Answer
-import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -64,12 +63,29 @@ class Quest09Test {
         assertFailsWith<IllegalArgumentException> { quest.part2("1:ACGT\n2:ACGT\n3:ACGT\n4:ACGT") }
     }
 
-    @Ignore("unlocks after part 2: paste its sample, then delete this line")
     @Test
-    fun `part 3 sample`() {
+    fun `part 3 samples`() {
         val sample = """
-            REPLACE ME
+            1:GCAGGCGAGTATGATACCCGGCTAGCCACCCC
+            2:TCTCGCGAGGATATTACTGGGCCAGACCCCCC
+            3:GGTGGAACATTCGAAAGTTGCATAGGGTGGTG
+            4:GCTCGCGAGTATATTACCGAACCAGCCCCTCA
+            5:GCAGCTTAGTATGACCGCCAAATCGCGACTCA
+            6:AGTGGAACCTTGGATAGTCTCATATAGCGGCA
+            7:GGCGTAATAATCGGATGCTGCAGAGGCTGCTG
         """.trimIndent()
-        assertEquals(Answer("REPLACE ME"), quest.part3(sample))
+        // Two families, {3, 6, 7} and {1, 2, 4, 5}: the bigger one sums to 12.
+        assertEquals(Answer(12), quest.part3(sample))
+
+        // Scale 8's parents come from both families, so its egg joins all eight scales into one.
+        val joined = sample + "\n8:GGCGTAAAGTATGGATGCTGGCTAGGCACCCG"
+        assertEquals(Answer(36), quest.part3(joined))
+    }
+
+    @Test
+    fun `two biggest families of the same size are rejected, not guessed between`() {
+        // Two unrelated families of three: 1 and 2 have child 3; 4 and 5 have child 6.
+        val tied = "1:AA\n2:CC\n3:AC\n4:GG\n5:TT\n6:GT"
+        assertFailsWith<IllegalArgumentException> { quest.part3(tied) }
     }
 }
