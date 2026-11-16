@@ -50,7 +50,7 @@ sealed interface Command {
                 "fetch"  -> Fetch(quest, parts.ifEmpty { Part.entries.toList() })
                 "submit" -> parts.singleOrNull()?.let { Submit(quest, it) }
                 "key"    -> parts.singleOrNull()?.let { Key(quest, it) }
-                "check"  -> if (parts.isEmpty()) Check(quest) else null
+                "check" if parts.isEmpty() -> Check(quest)
                 else     -> null
             }
         }
