@@ -11,8 +11,8 @@ internal class Config(private val values: Map<String, String>) {
 
     val token: String get() = required("EC_TOKEN", "the everybody-codes cookie value")
     val seed: String get() = required("EC_SEED", "the number in your input file's name")
-    val cookie: String get() = values["EC_COOKIE"] ?: "everybody-codes"
-    val userAgent: String get() = values["EC_USER_AGENT"] ?: "everybody-codes-kotlin"
+    val cookie: String get() = values["EC_COOKIE"]?.takeIf { it.isNotBlank() } ?: "everybody-codes"
+    val userAgent: String get() = values["EC_USER_AGENT"]?.takeIf { it.isNotBlank() } ?: "everybody-codes-kotlin"
 
     private fun required(name: String, what: String): String =
         values[name]?.takeIf { it.isNotBlank() } ?: fail("Set $name in .env ($what).")

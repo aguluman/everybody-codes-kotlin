@@ -15,7 +15,8 @@ REGISTRY = puzzles/src/main/kotlin/ec/Registry.kt
 # The tool's launcher. Gradle rebuilds it only when a source or build file is newer.
 EC      := cli/build/install/ec/bin/ec
 SOURCES := $(shell find puzzles/src/main cli/src/main -name '*.kt' 2>/dev/null) \
-           $(wildcard *.gradle.kts */build.gradle.kts)
+           $(wildcard *.gradle.kts */build.gradle.kts gradle/libs.versions.toml \
+                     settings.gradle.kts gradle.properties)
 
 help:
 	@echo "Everybody Codes — $(YEAR)"

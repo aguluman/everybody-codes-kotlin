@@ -38,6 +38,18 @@ class ConfigTest {
     }
 
     @Test
+    fun `blank cookie and user agent fall back to defaults`() {
+        val file = dir.resolve(".env").also { it.writeText("EC_COOKIE=\nEC_USER_AGENT=\n") }
+        val fromFile = Config.load(file, emptyMap())
+        assertEquals("everybody-codes", fromFile.cookie)
+        assertEquals("everybody-codes-kotlin", fromFile.userAgent)
+
+        val fromEnv = Config.load(file, mapOf("EC_COOKIE" to "", "EC_USER_AGENT" to "   "))
+        assertEquals("everybody-codes", fromEnv.cookie)
+        assertEquals("everybody-codes-kotlin", fromEnv.userAgent)
+    }
+
+    @Test
     fun `a missing token is a sentence, not a crash`() {
         val failure = assertFailsWith<Failure> { Config(emptyMap()).token }
         assertTrue("EC_TOKEN" in failure.message.orEmpty())

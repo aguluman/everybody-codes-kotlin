@@ -1,7 +1,7 @@
 # Everybody Codes — Kotlin
 
 Twenty quests on weekdays from early November, three parts each, and every part
-has its own input. Kotlin 2.4.20 on JDK 21, driven by `make`.
+has its own input. Kotlin 2.4.21 on JDK 21, driven by `make`.
 
 ## Once
 
